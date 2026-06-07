@@ -501,3 +501,8 @@ Contribuições são bem-vindas! Por favor:
 ---
 
 **Zac** - Seu Assistente Pessoal Inteligente, 100% Local e Gratuito 🚀
+
+
+
+[![License: CC BY-NC 4.0](https://shields.io)](https://creativecommons.org)
+
