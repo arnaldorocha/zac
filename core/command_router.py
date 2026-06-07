@@ -11,6 +11,7 @@ logger = logging.getLogger(__name__)
 
 class CommandType(str, Enum):
     """Command types."""
+    APP = "app"
     BROWSER = "browser"
     TASK = "task"
     CALENDAR = "calendar"
@@ -45,9 +46,21 @@ class CommandRouter:
     def _setup_patterns(self) -> None:
         """Setup command patterns."""
         self.patterns = {
+            # App commands (before browser to catch abrir variations)
+            CommandType.APP: [
+                (r"abri(?:u|r|a)?\s+(?:o\s+)?(\w+)", self._parse_open_app),
+               
+            ],
             # Browser commands
             CommandType.BROWSER: [
                 (r"abrir\s+(chrome|navigator|firefox|edge|navegador)", self._parse_open_browser),
+                (r"abril\s+(chrome|navigator|firefox|edge|navegador)", self._parse_open_browser),
+                (r"abriu\s+(chrome|navigator|firefox|edge|navegador)", self._parse_open_browser),
+                (r"abri\s+(chrome|navigator|firefox|edge|navegador)", self._parse_open_browser),
+                (r"abre\s+(chrome|navigator|firefox|edge|navegador)", self._parse_open_browser),
+                (r"navigar\s+para\s+(.+)", self._parse_navigate),
+                (r"mavigar\s+para\s+(.+)", self._parse_navigate),
+                (r"navegar\s+(?:o\s+|para\s+o\s+|para\s+)?(.+)", self._parse_navigate),
                 (r"navegar\s+para\s+(.+)", self._parse_navigate),
                 (r"clicar\s+em\s+(.+)", self._parse_click),
             ],
@@ -80,7 +93,9 @@ class CommandRouter:
     def parse_command(self, text: str) -> Command:
         """Parse command from text."""
         text_lower = text.lower().strip()
-        
+        text_lower = text_lower.replace(",", "").replace(".", "").replace("!", "").replace("?", "")
+
+
         # Remove greeting prefix if present
         if text_lower.startswith("zac "):
             text_lower = text_lower[4:]
@@ -137,6 +152,13 @@ class CommandRouter:
             return f"Erro ao executar comando: {str(e)}"
     
     # Parsers
+    def _parse_open_app(self, match) -> Dict:
+        """Parse open app command."""
+        return {
+            'action': 'open_app',
+            'params': {'app_name': match.group(1)}
+        }
+    
     def _parse_open_browser(self, match) -> Dict:
         """Parse open browser command."""
         return {

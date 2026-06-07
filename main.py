@@ -40,7 +40,7 @@ def main():
         assistant = ZacAssistant(db_path="data/zac.db")
         
         # Greet user
-        assistant.tts.speak("Olá! Eu sou Zac. Como posso ajudá-lo mestre Arnaldo?")
+        assistant.tts.speak("Olá! Eu sou Zac. Como posso ajudá-lo meu amigo Arnaldo?")
         
         logger.info("Assistant ready for commands")
         logger.info("Type 'quit' to exit, 'help' for commands, or speak a command")

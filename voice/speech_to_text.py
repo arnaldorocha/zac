@@ -19,10 +19,10 @@ class SpeechToText:
 
     def __init__(
         self,
-        model_name: str = "base",
-        sample_rate: int = 16000,
-        silence_threshold: float = 500.0,
-        silence_duration: float = 1.5,
+        model_name: str = "small",
+        sample_rate: int = 44100,
+        silence_threshold: float = 150.0,
+        silence_duration: float = 3.5,
     ):
         self.model_name = model_name
         self.sample_rate = sample_rate
@@ -34,7 +34,7 @@ class SpeechToText:
         try:
             from faster_whisper import WhisperModel
         except ImportError:
-            logger.error("faster-whisper not installed. Install with: pip install faster-whisper")
+            logger.error("faster-whisper not installed. Run: pip install faster-whisper")
             return None
 
         try:
@@ -63,10 +63,10 @@ class SpeechToText:
 
         try:
             with sd.InputStream(
-                samplerate=self.sample_rate,
+                samplerate=44100,
                 channels=1,
                 dtype="int16",
-                blocksize=int(self.sample_rate * chunk_seconds),
+                blocksize=int(self.sample_rate * chunk_seconds), 
             ) as stream:
                 logger.info("Recording audio from microphone")
 
@@ -83,16 +83,16 @@ class SpeechToText:
                     else:
                         silence_counter = 0
 
-                if not recorded_frames:
-                    logger.warning("No audio captured")
-                    return None
+            if not recorded_frames:
+                logger.warning("No audio captured")
+                return None
 
-                audio_data = np.concatenate(recorded_frames)
-                temp_wav = tempfile.NamedTemporaryFile(suffix=".wav", delete=False)
-                temp_path = Path(temp_wav.name)
-                temp_wav.close()
-                write_wav(str(temp_path), self.sample_rate, audio_data)
-                return temp_path
+            audio_data = np.concatenate(recorded_frames)
+            temp_wav = tempfile.NamedTemporaryFile(suffix=".wav", delete=False)
+            temp_path = Path(temp_wav.name)
+            temp_wav.close()
+            write_wav(str(temp_path), self.sample_rate, audio_data)
+            return temp_path
 
         except Exception as exc:
             logger.error(f"Audio recording failed: {exc}")
@@ -110,32 +110,34 @@ class SpeechToText:
 
         try:
             logger.info(f"Transcribing audio: {audio_path}")
-            result = self._model.transcribe(
+            segments, info = self._model.transcribe(
                 str(audio_path),
                 beam_size=5,
-                language=None,
+                language="pt",
                 vad_filter=False,
             )
 
-            transcript = []
-            for segment in result:
-                if hasattr(segment, "text"):
-                    transcript.append(segment.text)
-                elif isinstance(segment, dict) and "text" in segment:
-                    transcript.append(segment["text"])
-
+            transcript = [segment.text for segment in segments]
             text = " ".join(transcript).strip()
+
             if text:
-                logger.info(f"Transcribed text: {text}")
+                logger.info(f"Transcribed: {text}")
             else:
                 logger.warning("Transcription returned no text")
+
             return text or None
+
         except Exception as exc:
             logger.error(f"Transcription failed: {exc}")
             return None
+
         finally:
             try:
                 if audio_path.exists():
                     audio_path.unlink()
             except Exception:
                 pass
+
+    def close(self) -> None:
+        self._model = None
+        logger.info("SpeechToText closed")

@@ -15,6 +15,7 @@ from memory.memory_service import MemoryService
 from database.sqlite_manager import SQLiteManager
 from database.models import TaskPriority, EventType
 from core.command_router import CommandRouter, CommandType
+from core.app_manager import AppManagerService
 from core.scheduler import Scheduler
 
 logger = logging.getLogger(__name__)
@@ -45,6 +46,9 @@ class ZacAssistant:
         # Initialize sheets
         self.sheets = GoogleSheetsService()
         
+        # Initialize app manager
+        self.apps = AppManagerService()
+        
         # Initialize command router
         self.router = CommandRouter()
         self._setup_handlers()
@@ -57,6 +61,11 @@ class ZacAssistant:
     
     def _setup_handlers(self) -> None:
         """Setup command handlers."""
+        # App handlers
+        self.router.register_handler(
+            CommandType.APP, "open_app", self.handle_open_app
+        )
+        
         # Browser handlers
         self.router.register_handler(
             CommandType.BROWSER, "open_browser", self.handle_open_browser
@@ -127,6 +136,12 @@ class ZacAssistant:
         
         return result
     
+    # App handlers
+    def handle_open_app(self, params: dict) -> str:
+        """Handle open app command."""
+        app_name = params.get("app_name", "")
+        return self.apps.open_app(app_name)
+    
     # Browser handlers
     def handle_open_browser(self, params: dict) -> str:
         """Handle open browser command."""
@@ -134,17 +149,29 @@ class ZacAssistant:
         self.browser.open_browser()
         self.tts.speak(f"Abrindo {browser_name}")
         return f"{browser_name} aberto com sucesso"
-    
+        
     def handle_navigate(self, params: dict) -> str:
-        """Handle navigate command."""
-        url = params.get('url', '')
-        if url:
-            if not url.startswith('http'):
-                url = f"https://google.com/search?q={url}"
-            self.browser.navigate(url)
-            return f"Navegando para {url}"
-        return "URL não especificada"
-    
+        url = params.get("url", "")
+        if not url:
+            return "URL não informada."
+        
+        url_lower = url.lower().strip()
+        
+        # YouTube
+        if "youtube" in url_lower:
+            return self.apps.open_url("https://www.youtube.com")
+        
+        # Google
+        if "google" in url_lower:
+            return self.apps.open_url("https://www.google.com")
+        
+        # URLs diretas
+        if url_lower.startswith("http"):
+            return self.apps.open_url(url)
+        
+        # Pesquisa no Google se não for URL
+        return self.apps.search_google(url)
+       
     # Task handlers
     def handle_add_task(self, params: dict) -> str:
         """Handle add task command."""
@@ -290,3 +317,4 @@ class ZacAssistant:
         self.stt.close()
         
         logger.info("Zac Assistant shutdown complete")
+

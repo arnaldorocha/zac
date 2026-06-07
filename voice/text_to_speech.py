@@ -6,6 +6,7 @@ import logging
 import tempfile
 import threading
 import time
+from concurrent.futures import ThreadPoolExecutor
 from pathlib import Path
 from typing import Optional
 
@@ -97,7 +98,10 @@ class TextToSpeech:
 
         audio_path = self._get_temp_audio_file()
         try:
-            self._render_text_to_file(text, audio_path)
+            with ThreadPoolExecutor(max_workers=1) as executor:
+                future = executor.submit(self._render_text_to_file, text, audio_path)
+                future.result()
+
             self._stop_event.clear()
             return self._play_audio(audio_path, block=True)
         except Exception as exc:

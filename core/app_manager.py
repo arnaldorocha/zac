@@ -13,18 +13,25 @@ class AppManagerService:
     """Manages application, file, folder and URL actions on Windows."""
 
     APPS: Dict[str, List[str]] = {
-        "vscode": ["code"],
-        "code": ["code"],
-        "edge": ["msedge", "edge"],
-        "chrome": ["chrome", "google chrome"],
-        "notepad": ["notepad"],
-        "explorer": ["explorer"],
-        "spotify": ["spotify"],
-        "discord": ["discord"],
-        "whatsapp": ["WhatsApp"],
-        "terminal": ["cmd", "powershell"],
-    }
-
+    "vscode": ["code"],
+    "code": ["code"],
+    "edge": [r"C:\Program Files (x86)\Microsoft\Edge\Application\msedge.exe"],
+    "edg": [r"C:\Program Files (x86)\Microsoft\Edge\Application\msedge.exe"],
+    "navegador": [r"C:\Program Files (x86)\Microsoft\Edge\Application\msedge.exe"],
+    "chrome": [r"C:\Users\arnal\AppData\Local\Google\Chrome\Application\chrome.exe"],
+    "crome": [r"C:\Users\arnal\AppData\Local\Google\Chrome\Application\chrome.exe"],
+    "cron": [r"C:\Users\arnal\AppData\Local\Google\Chrome\Application\chrome.exe"],
+    "brome": [r"C:\Users\arnal\AppData\Local\Google\Chrome\Application\chrome.exe"],
+    "google": [r"C:\Users\arnal\AppData\Local\Google\Chrome\Application\chrome.exe"],
+    "notepad": ["notepad"],
+    "bloco": ["notepad"],
+    "explorer": ["explorer"],
+    "spotify": [r"C:\Users\arnal\AppData\Roaming\Spotify\Spotify.exe"],
+    "discord": [r"C:\Users\arnal\AppData\Local\Discord\Update.exe", "--processStart", "Discord.exe"],
+    "whatsapp": [r"C:\Users\arnal\AppData\Local\WhatsApp\WhatsApp.exe"],
+    "terminal": ["cmd"],
+    "cmd": ["cmd"],
+}
     def __init__(self):
         self.platform = os.name
 
